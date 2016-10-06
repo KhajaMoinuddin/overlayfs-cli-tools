@@ -1,0 +1,42 @@
+#!/bin/perl
+
+use lib '/root/overlayfs_tools';
+use overlayfs;
+
+
+$layer_tag = $ARGV[0];
+$layer_tag =~ s/[\s]/_/g;
+
+$layers_dir="/root/layers";
+
+#which dir are we in
+$pwd = `pwd`;
+chomp($pwd);
+
+
+chomp($latest_layer = get_latest_layer());
+if(! $latest_layer)
+{
+
+	$create_merged_dir_cmd="mkdir -p $layers_dir/merged";
+	print "$create_merged_dir_cmd\n";
+	system($create_merged_dir_cmd);
+	
+	#mount
+	stack_new_layer($pwd,$layers_dir.'/000', ($layer_tag) ? ($layer_tag):('000'));
+}
+else
+{
+	print "\$latest_layer = $latest_layer\n";
+
+	chdir("/root");
+	$incremented_layer = $latest_layer;
+	++$incremented_layer;
+	print "\$incremented_layer = $incremented_layer\n";
+	
+	#mount
+	stack_new_layer($pwd,"$layers_dir/$incremented_layer",($layer_tag) ? ($layer_tag):($incremented_layer));
+	
+}
+
+chdir($pwd);

@@ -1,0 +1,23 @@
+#!/bin/perl
+
+use lib '/root/overlayfs_tools';
+use overlayfs;
+
+%all_layers = get_all_layers;
+
+format STDOUT_TOP =
+tag			directory			position
+-----------------------------------------------------------------
+.
+
+foreach(keys(%all_layers))
+{
+	format STDOUT =
+@<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$_,                     $all_layers{$_}
+.
+write;
+
+}
+
+print "\n";

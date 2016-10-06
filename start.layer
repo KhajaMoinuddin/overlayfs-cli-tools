@@ -1,0 +1,18 @@
+#!/bin/perl
+
+use lib '/root/overlayfs_tools';
+use overlayfs;
+
+
+$layers_dir="/root/layers";
+
+#which dir are we in
+$pwd = `pwd`;
+chomp($pwd);
+
+$create_merged_dir_cmd="mkdir -p $layers_dir/merged";
+print "$create_merged_dir_cmd\n";
+system($create_merged_dir_cmd);
+
+#mount
+create_and_mount_layer($pwd,$layers_dir.'/000','000');

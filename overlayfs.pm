@@ -1,16 +1,21 @@
 package overlayfs;
 use Exporter qw(import);
 our @ISA = qw(Exporter);
-our @EXPORT = qw(stack_new_layer create_and_mount_layer get_greatest_layer get_current_layer get_all_layers bring_layer_to_front get_base_dir delete_all_layers);
-
-$layers_dir=($ENV{'LAYERS_DIR'})?($ENV{'LAYERS_DIR'}):("/root/layers");
-if(! -d $layers_dir)
-{
-        mkdir("$layers_dir") or die("failed to mkdir $layers_dir :: $!\n");
-}
+our @EXPORT = qw(get_layers_dir stack_new_layer create_and_mount_layer get_greatest_layer get_current_layer get_all_layers bring_layer_to_front get_base_dir delete_all_layers);
 
 chomp($pwd = `pwd`);
+$layers_dir=get_layers_dir();
+print "\$layers_dir = $layers_dir\n";
 
+sub get_layers_dir
+{
+	$layers_dir=($ENV{'LAYERS_DIR'})?($ENV{'LAYERS_DIR'}):("/root/layers");
+	if(! -d $layers_dir)
+	{
+	        mkdir("$layers_dir") or die("failed to mkdir $layers_dir :: $!\n");
+	}
+	return($layers_dir);
+}
 
 sub bring_layer_to_front
 {

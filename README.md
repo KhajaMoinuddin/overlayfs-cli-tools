@@ -1,5 +1,5 @@
 # overlayfs-cli-tools
-simple cli tools for overlayfs
+Simple cli tools for overlayfs. Supports stacking, switching and deleting multiple lower layers. Requires latest linux kernel.
 
 ## Usage
 1. Login as root

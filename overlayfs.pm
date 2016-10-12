@@ -1,10 +1,10 @@
 package overlayfs;
 use Exporter qw(import);
 our @ISA = qw(Exporter);
-our @EXPORT = qw(stack_new_layer create_and_mount_layer get_latest_layer get_all_layers bring_layer_to_front get_base_dir);
+our @EXPORT = qw(stack_new_layer create_and_mount_layer get_greatest_layer get_current_layer get_all_layers bring_layer_to_front get_base_dir delete_all_layers);
 
 $layers_dir = "/root/layers";
-
+chomp($pwd = `pwd`);
 
 
 sub bring_layer_to_front
@@ -44,7 +44,6 @@ sub bring_layer_to_front
 
 	#unmount all layers and prepare for re-layering
 	#chdir('/root/');
-	chomp(my $pwd = `pwd`);
 	if($pwd eq $original_dir)
 	{
 		print "PWD IS : ".`pwd`."\nPlease exit the working directory and then unmount.\nExiting...\n";
@@ -165,7 +164,7 @@ sub get_all_lower_dirs
         chomp(@all_lower_layers);
 	foreach(@all_lower_layers)
 	{
-		$_ =~ s/rw,relatime,seclabel,//;
+		$_ =~ s/(\w+,)+lowerdir/lowerdir/;
 		$_ =~ s/\(+//;
 		$_ =~ s/\)+//;
 		$_ =~ /([^\s]+)\s+([^\s]+)/;
@@ -174,7 +173,14 @@ sub get_all_lower_dirs
 	return(%all_lower_layers_info);
 }
 
-sub get_latest_layer
+sub get_current_layer
+{
+	my($working_dir)=@_;
+	chomp($current_layer = `df -kh $working_dir --output=source | tail -1`);
+	return($current_layer);
+}
+
+sub get_greatest_layer
 {
         my @all_layers = `mount | grep overlay 2>&1 | cut -d' ' -f 1`;
         chomp(@all_layers = sort @all_layers);
@@ -243,6 +249,78 @@ sub get_all_layer_tags
 		}
 	}
 	return(@all_layer_tags);
+}
+
+sub delete_all_layers
+{
+	my($original_dir,$layer_tag)=@_;
+	my %all_layers_hash = get_all_layers();
+	my %all_lower_dirs = get_all_lower_dirs();
+	my $current_layer = get_current_layer($original_dir);
+	if(-l ("$layers_dir/$layer_tag"))
+        {
+        	#print "$layers_dir/$_ -> ".readlink("$layers_dir/$_")."\n";
+        	#push(@all_layer_tags,"$_");
+		if(readlink("$layers_dir/$layer_tag") =~ /\/([^\/]+)$/)
+		{
+			$layer_basename = $1;
+			print "\$layer_basename = $layer_basename\n";
+			#exit;
+		}
+	}
+	else
+        {
+        	$layer_basename = $layer_tag;
+        }                
+
+	if($pwd eq $original_dir)
+        {
+                print "PWD IS : ".`pwd`."\nPlease exit the working directory and then unmount.\nExiting...\n";
+                exit;
+        }
+
+	foreach(keys(%all_layers_hash))
+	{
+		#print "#########".$all_layers[$i++]."#########\n";
+		$unmount_older_mount_cmd = "umount $original_dir";
+		#$unmount_older_mount_cmd = "fuser -vm $original_dir";
+		print "$unmount_older_mount_cmd\n";
+		system("$unmount_older_mount_cmd");
+		$delete_layer_dir_cmd = "rm -rf $all_layers_hash{$_}";
+		if(($layer_tag) && ($layer_tag eq $_))
+		{
+			print "deleting $layer_tag\n";
+			print "$delete_layer_dir_cmd\n";
+			system($delete_layer_dir_cmd);
+			next;
+		}
+		elsif(! $layer_tag)
+		{
+			print "deleting $all_layers_hash{$_}\n";
+			print "$delete_layer_dir_cmd\n";
+			system($delete_layer_dir_cmd);
+		}
+	}
+	return if (! $layer_tag);
+	foreach(sort(keys(%all_lower_dirs)))
+        {
+                print "\$_ = $_\n";
+                if(($_ ne $layer_basename) && ($_ ne $current_layer))
+                {
+                        print "$_ != $layer_basename\n";
+			$layer_details = $all_lower_dirs{$_};
+			$layer_details =~ s/$layers_dir\/$layer_tag://;
+                        my $remount_layer_cmd = "mount -t overlay $_ -o $layer_details $original_dir";
+                        print "$remount_layer_cmd\n";
+                        system("$remount_layer_cmd");
+                }
+        }
+	if($layer_tag ne $current_layer)
+	{
+		my $remount_layer_cmd = "mount -t overlay $current_layer -o $all_lower_dirs{$current_layer} $original_dir";
+        	print "$remount_layer_cmd\n";
+		system("$remount_layer_cmd");
+	}
 }
 
 1;

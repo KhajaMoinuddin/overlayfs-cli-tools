@@ -1,12 +1,15 @@
 #!/bin/perl
 
-use lib '/root/overlayfs_tools';
+use FindBin;
+use lib "$FindBin::Bin";
 use overlayfs;
 
-$base_dir = $ARGV[0];
+$working_dir = $ARGV[0];
 $layer_tag = $ARGV[1];
 $layer_tag =~ s/[\s]/_/g;
 
 $layers_dir="/root/layers";
 
-bring_layer_to_front($base_dir,$layer_tag);
+die("working_dir is mandatory param\n") if (! $working_dir);
+
+bring_layer_to_front($working_dir,$layer_tag);

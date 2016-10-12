@@ -1,6 +1,7 @@
 #!/bin/perl
 
-use lib '/root/overlayfs_tools';
+use FindBin;
+use lib "$FindBin::Bin";
 use overlayfs;
 
 
@@ -14,8 +15,8 @@ $pwd = `pwd`;
 chomp($pwd);
 
 
-chomp($latest_layer = get_latest_layer());
-if(! $latest_layer)
+chomp($greatest_layer = get_greatest_layer());
+if(! $greatest_layer)
 {
 
 	$create_merged_dir_cmd="mkdir -p $layers_dir/merged";
@@ -27,10 +28,10 @@ if(! $latest_layer)
 }
 else
 {
-	print "\$latest_layer = $latest_layer\n";
+	print "\$greatest_layer = $greatest_layer\n";
 
 	chdir("/root");
-	$incremented_layer = $latest_layer;
+	$incremented_layer = $greatest_layer;
 	++$incremented_layer;
 	print "\$incremented_layer = $incremented_layer\n";
 	

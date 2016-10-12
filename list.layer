@@ -1,22 +1,37 @@
 #!/bin/perl
 
-use lib '/root/overlayfs_tools';
+use FindBin;
+use lib "$FindBin::Bin";
 use overlayfs;
+use Data::Dumper;
 
 %all_layers = get_all_layers;
+$current_layer = get_current_layer;
+
+print "$current_layer\n\n\n";
+#exit;
+
+#find current layer
+chomp($current_layer = `df -kh . --output=source | tail -1`);
+print "### $current_layer ###\n\n";
+
+
 
 format STDOUT_TOP =
 tag			directory			position
 -----------------------------------------------------------------
 .
 
-foreach(keys(%all_layers))
+foreach (keys(%all_layers))
 {
 	format STDOUT =
-@<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-$_,                     $all_layers{$_}
+@<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<
+$_,                     ($all_layers{$_} =~ /$current_layer$/)? ($all_layers{$_}, "HEAD") : $all_layers{$_}      
 .
-write;
+write STDOUT;
+
+	#print Dumper $all_layers{$_}[0]."\n\n";
+	#next;
 
 }
 

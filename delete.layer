@@ -4,7 +4,11 @@ use FindBin;
 use lib "$FindBin::Bin";
 use overlayfs;
 
-$layers_dir="/root/layers";
+$layers_dir=($ENV{'LAYERS_DIR'})?($ENV{'LAYERS_DIR'}):("/root/layers");
+if(! -d $layers_dir)
+{
+        mkdir("$layers_dir") or die("failed to mkdir $layers_dir :: $!\n");
+}
 
 #which dir are we in
 $pwd = `pwd`;

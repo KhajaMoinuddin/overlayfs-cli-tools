@@ -3,7 +3,12 @@ use Exporter qw(import);
 our @ISA = qw(Exporter);
 our @EXPORT = qw(stack_new_layer create_and_mount_layer get_greatest_layer get_current_layer get_all_layers bring_layer_to_front get_base_dir delete_all_layers);
 
-$layers_dir = "/root/layers";
+$layers_dir=($ENV{'LAYERS_DIR'})?($ENV{'LAYERS_DIR'}):("/root/layers");
+if(! -d $layers_dir)
+{
+        mkdir("$layers_dir") or die("failed to mkdir $layers_dir :: $!\n");
+}
+
 chomp($pwd = `pwd`);
 
 

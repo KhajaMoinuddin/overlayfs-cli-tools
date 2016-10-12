@@ -1,0 +1,20 @@
+#!/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin";
+use overlayfs;
+
+$layers_dir="/root/layers";
+
+#which dir are we in
+$pwd = `pwd`;
+chomp($pwd);
+
+$working_dir = $ARGV[0];
+$layer_tag = $ARGV[1];
+
+die("working_dir is mandatory param\n") if (! $working_dir);
+
+delete_all_layers($working_dir,$layer_tag);
+
+print "\n";
